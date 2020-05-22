@@ -51,6 +51,7 @@
     "docker:run": "docker run -p 3000:3000 -d <%= project.name -%>",
   <%_ } -%>
     "migrate": "node ./dist/migrate",
+    "openapi-spec": "node ./dist/openapi-spec",
     "prestart": "npm run build",
     "start": "node -r source-map-support/register .",
 <% } -%>
@@ -95,6 +96,10 @@
     "tslib": "<%= project.dependencies['tslib'] -%>"
   },
   "devDependencies": {
+<% if (project.projectType === 'application') { -%>
+    "@types/js-yaml": "<%= project.dependencies['@types/js-yaml'] -%>",
+    "js-yaml": "<%= project.dependencies['js-yaml'] -%>",
+<% } -%>
     "@loopback/build": "<%= project.dependencies['@loopback/build'] -%>",
     "source-map-support": "<%= project.dependencies['source-map-support'] -%>",
     "@loopback/testlab": "<%= project.dependencies['@loopback/testlab'] -%>",
