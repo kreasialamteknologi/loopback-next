@@ -326,56 +326,31 @@ npm-debug.log
 
 exports[`app-generator specific files generates openapi spec script 1`] = `
 import {ApplicationConfig} from '@loopback/core';
-import fs from 'fs';
-import {dump} from 'js-yaml';
+import {OpenAPIObject} from '@loopback/rest';
 import {MyAppApplication} from './application';
 
 /**
- * Save the OpenAPI spec to the given file
- * @param outFile - File name for the spec
- * @param options - Application config
+ * Export the OpenAPI spec from the application
  */
-export async function dumpOpenApiSpec(
-  outFile: string,
-  options?: ApplicationConfig,
-) {
-  options = options ?? {};
-  options.rest = {...options.rest, listenOnStart: false};
-  const app = new MyAppApplication(options);
-  await app.boot();
-
-  const spec = await app.restServer.getApiSpec();
-  if (outFile === '-' || outFile === '') {
-    const json = JSON.stringify(spec, null, 2);
-    console.log('%s', json);
-    return spec;
-  }
-  const fileName = outFile.toLowerCase();
-  if (fileName.endsWith('.yaml') || fileName.endsWith('.yml')) {
-    const yaml = dump(spec);
-    fs.writeFileSync(outFile, yaml, 'utf-8');
-  } else {
-    const json = JSON.stringify(spec, null, 2);
-    fs.writeFileSync(outFile, json, 'utf-8');
-  }
-  console.log('The OpenAPI spec is saved to %s.', outFile);
-  return spec;
-}
-
-if (require.main === module) {
-  // Run the application
-  const config = {
+async function exportOpenApiSpec(): Promise<OpenAPIObject> {
+  const config: ApplicationConfig = {
     rest: {
       port: +(process.env.PORT ?? 3000),
       host: process.env.HOST ?? 'localhost',
       openApiSpec: {
-        // useful when used with OpenAPI-to-GraphQL to locate your application
         setServersFromRequest: true,
       },
     },
   };
-  dumpOpenApiSpec(process.argv[2] ?? '', config).catch(err => {
-    console.error('Cannot start the application.', err);
+  const outFile = process.argv[2] ?? '';
+  const app = new MyAppApplication(config);
+  await app.boot();
+  return app.exportOpenApiSpec(outFile);
+}
+
+if (require.main === module) {
+  exportOpenApiSpec().catch(err => {
+    console.error('Fail to export OpenAPI spec from the application.', err);
     process.exit(1);
   });
 }

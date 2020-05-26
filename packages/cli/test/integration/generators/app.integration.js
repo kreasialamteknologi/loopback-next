@@ -61,7 +61,10 @@ describe('app-generator specific files', () => {
 
   it('generates openapi spec script', () => {
     assertFilesToMatchSnapshot({}, 'src/openapi-spec.ts');
-    assert.fileContent('package.json', /"openapi-spec": "node \.\/dist\/openapi-spec"/);
+    assert.fileContent(
+      'package.json',
+      /"openapi-spec": "node \.\/dist\/openapi-spec"/,
+    );
   });
 
   it('generates docker files', () => {
