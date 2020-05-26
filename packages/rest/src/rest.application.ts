@@ -387,4 +387,20 @@ export class RestApplication extends Application implements HttpServerLike {
   ): void {
     this.restServer.mountExpressRouter(basePath, router, spec);
   }
+
+  /**
+   * Export the OpenAPI spec to the given json or yaml file
+   * @param outFile - File name for the spec. The extension of the file
+   * determines the format of the file.
+   * - `yaml` or `yml`: YAML
+   * - `json` or other: JSON
+   * If the outFile is `''` or `'-'`, the spec is written to the console.
+   * @param log - Log function, default to `console.log`
+   */
+  async exportOpenApiSpec(
+    outFile: string,
+    log = console.log,
+  ): Promise<OpenApiSpec> {
+    return this.restServer.exportOpenApiSpec(outFile, log);
+  }
 }
