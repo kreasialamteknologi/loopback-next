@@ -394,3 +394,37 @@ export interface ResolutionContext<T = unknown> {
    */
   readonly options: ResolutionOptions;
 }
+
+/**
+ * An error for resolutions
+ */
+export class ResolutionError extends Error {
+  readonly cause: unknown;
+  readonly resolutionContext: ResolutionContext;
+
+  constructor(err: unknown, resolutionContext: ResolutionContext) {
+    const message = err instanceof Error ? err.message : String(err);
+    super(message);
+    Error.captureStackTrace(this, ResolutionError);
+    this.cause = err;
+    this.name = ResolutionError.name;
+    this.resolutionContext = resolutionContext;
+  }
+
+  toString(): string {
+    const str = super.toString();
+    const resolutionPath = this.resolutionContext.options.session?.getResolutionPath();
+    const prefix = resolutionPath ? `${resolutionPath} => ` : '';
+    return `${str} (${prefix}${this.resolutionContext.context.name}#${this.resolutionContext.binding.key})`;
+  }
+
+  toJSON() {
+    return {
+      message: this.message,
+      context: this.resolutionContext.context.name,
+      binding: this.resolutionContext.binding.key,
+      resolutionPath: this.resolutionContext.options.session?.getResolutionPath(),
+      cause: String(this.cause),
+    };
+  }
+}

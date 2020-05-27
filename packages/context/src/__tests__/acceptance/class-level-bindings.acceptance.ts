@@ -51,7 +51,11 @@ describe('Context bindings - Injecting dependencies of classes', () => {
         throw new Error('ctx.get() should have failed');
       },
       function onError(err) {
-        expect(err).to.match(/resolve.*InfoController.*argument 1/);
+        expect(err.message).to.eql(
+          'Cannot resolve injected arguments for InfoController.[0]: ' +
+            'The arguments[0] is not decorated for dependency injection, ' +
+            'but a value is not supplied',
+        );
       },
     );
   });
@@ -72,7 +76,11 @@ describe('Context bindings - Injecting dependencies of classes', () => {
         throw new Error('ctx.get() should have failed');
       },
       function onError(err) {
-        expect(err).to.match(/resolve.*InfoController.*argument 1/);
+        expect(err.message).to.eql(
+          'Cannot resolve injected arguments for ' +
+            'InfoController.[0]: The arguments[0] is not decorated for ' +
+            'dependency injection, but a value is not supplied',
+        );
       },
     );
   });

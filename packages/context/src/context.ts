@@ -27,6 +27,7 @@ import {JSONObject} from './json-types';
 import {ContextBindings} from './keys';
 import {
   asResolutionOptions,
+  ResolutionError,
   ResolutionOptions,
   ResolutionOptionsOrSession,
   ResolutionSession,
@@ -36,6 +37,7 @@ import {
   Constructor,
   getDeepProperty,
   isPromiseLike,
+  transformValueOrPromise,
   uuid,
   ValueOrPromise,
 } from './value-promise';
@@ -797,21 +799,27 @@ export class Context extends EventEmitter {
   ): ValueOrPromise<ValueType | undefined> {
     const {key, propertyPath} = BindingKey.parseKeyWithPath(keyWithPath);
 
-    optionsOrSession = asResolutionOptions(optionsOrSession);
+    const options = asResolutionOptions(optionsOrSession);
 
-    const binding = this.getBinding<ValueType>(key, optionsOrSession);
-    if (binding == null) return undefined;
+    let binding: Binding<ValueType> | undefined;
+    try {
+      binding = this.getBinding<ValueType>(key, options);
+      if (binding == null) return undefined;
+    } catch (err) {
+      throw new ResolutionError(err, {
+        context: this,
+        binding: Binding.bind(key),
+        options,
+      });
+    }
 
-    const boundValue = binding.getValue(this, optionsOrSession);
+    const boundValue = binding.getValue(this, options);
     if (propertyPath === undefined || propertyPath === '') {
       return boundValue;
     }
-
-    if (isPromiseLike(boundValue)) {
-      return boundValue.then(v => getDeepProperty<ValueType>(v, propertyPath));
-    }
-
-    return getDeepProperty<ValueType>(boundValue, propertyPath);
+    return transformValueOrPromise(boundValue, v =>
+      getDeepProperty<ValueType>(v, propertyPath),
+    );
   }
 
   /**
