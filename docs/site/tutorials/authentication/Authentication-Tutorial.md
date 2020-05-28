@@ -80,8 +80,7 @@ $ npm i --save @loopback/authentication @loopback/authentication-jwt
 ## Step 1: Bind JWT Component in the Application
 
 In `src/application.ts`, bind the authentication components to your application
-class. Since we will be testing the JWT authentication using API Explorer, we
-will add the `addSecuritySpec()` function.
+class.
 
 {% include code-caption.html content="src/application.ts" %}
 
@@ -100,8 +99,6 @@ export class TodoListApplication extends BootMixin(
   constructor(options: ApplicationConfig = {}) {
     //...
     // ------ ADD SNIPPET AT THE BOTTOM ---------
-    // Add security spec (Future work: refactor it to an enhancer)
-    this.addSecuritySpec();
     // Mount authentication system
     this.component(AuthenticationComponent);
     // Mount jwt component
@@ -110,28 +107,6 @@ export class TodoListApplication extends BootMixin(
     this.dataSource(DbDataSource, UserServiceBindings.DATASOURCE_NAME);
     // ------------- END OF SNIPPET -------------
   }
-  // ---------- ADD THIS FUNCTION ------------
-  // Add this function so that we can later test the
-  // JWT authentication using API Explorer
-  addSecuritySpec(): void {
-    this.api({
-      openapi: '3.0.0',
-      info: {
-        title: 'test application',
-        version: '1.0.0',
-      },
-      paths: {},
-      components: {securitySchemes: SECURITY_SCHEME_SPEC},
-      security: [
-        {
-          // secure all endpoints with 'jwt'
-          jwt: [],
-        },
-      ],
-      servers: [{url: '/'}],
-    });
-  }
-  // -------------- END OF SNIPPET -----------
 }
 ```
 
@@ -194,7 +169,7 @@ In the UserController, we are going to create three endpoints:
 
 ### 3a. Create the UserController
 
-Create the controller using lb4 controller command with the empty controller
+Create the controller using `lb4 controller` command with the empty controller
 option.
 
 ```sh
