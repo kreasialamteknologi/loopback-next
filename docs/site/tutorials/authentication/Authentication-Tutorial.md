@@ -93,6 +93,8 @@ import {
   UserServiceBindings,
 } from '@loopback/authentication-jwt';
 import {DbDataSource} from './datasources';
+// ------------------------------------
+
 export class TodoListApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
 ) {
@@ -125,6 +127,7 @@ import {
   AUTHENTICATION_STRATEGY_NOT_FOUND,
   USER_PROFILE_NOT_FOUND,
 } from '@loopback/authentication';
+// ------------------------------------
 export class MySequence implements SequenceHandler {
   constructor(
     // ---- ADD THIS LINE ------
@@ -142,18 +145,18 @@ export class MySequence implements SequenceHandler {
       const args = await this.parseParams(request, route);
       const result = await this.invoke(route, args);
       this.send(response, result);
-    } catch (error) {
+    } catch (err) {
       // ---------- ADD THIS SNIPPET -------------
       // if error is coming from the JWT authentication extension
       // make the statusCode 401
       if (
-        error.code === AUTHENTICATION_STRATEGY_NOT_FOUND ||
-        error.code === USER_PROFILE_NOT_FOUND
+        err.code === AUTHENTICATION_STRATEGY_NOT_FOUND ||
+        err.code === USER_PROFILE_NOT_FOUND
       ) {
-        Object.assign(error, {statusCode: 401 /* Unauthorized */});
+        Object.assign(err, {statusCode: 401 /* Unauthorized */});
       }
       // ---------- END OF SNIPPET -------------
-      this.reject(context, error);
+      this.reject(context, err);
     }
   }
 }
@@ -194,6 +197,19 @@ constructor injects the `MyUserService` from this extension.
 {% include code-caption.html content="/src/controllers/user.controller.ts" %}
 
 ```ts
+// ---------- ADD IMPORTS -------------
+import {inject} from '@loopback/core';
+import {
+  TokenServiceBindings,
+  MyUserService,
+  UserServiceBindings,
+  UserRepository,
+} from '@loopback/authentication-jwt';
+import {TokenService} from '@loopback/authentication';
+import {SecurityBindings, UserProfile} from '@loopback/security';
+import {repository} from '@loopback/repository';
+// ----------------------------------
+
 constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public jwtService: TokenService,
@@ -206,7 +222,8 @@ constructor(
 ```
 
 For the implementation of all the 3 endpoints, you can take a look at this
-user.controller.ts.
+[user.controller.ts](https://github.com/strongloop/loopback-next/blob/master/examples/todo-jwt/src/controllers/user.controller.ts)
+in the [`todo-jwt` example].
 
 ## Step 4: Protect the Todo APIs
 
@@ -218,6 +235,9 @@ the APIs in this controller.
 {% include code-caption.html content="/src/controllers/user.controller.ts" %}
 
 ```ts
+// ---------- ADD IMPORTS -------------
+import {authenticate} from '@loopback/authentication';
+// ------------------------------------
 @authenticate('jwt') // <---- Apply the @authenticate decorator at the class level
 export class TodoController {
   //...
@@ -237,7 +257,7 @@ http://localhost:3000/explorer. You’ll see the 3 new endpoints under
 
 ![](../../imgs/auth-tutorial-apiexplorer.png)
 
-1. Sign up using the/signup API
+1. Sign up using the `/signup` API
 
    Since we don’t have any users created, click on `POST /signup`. For the
    requestBody, the minimum you need is `email` and `password`. i.e.
@@ -249,9 +269,9 @@ http://localhost:3000/explorer. You’ll see the 3 new endpoints under
    }
    ```
 
-2. Log in using thePOST /users/login API
+2. Log in using the `POST /users/login` API
 
-   After calling /users/login , the response body will look something like:
+   After calling `/users/login`, the response body will look something like:
 
    ```json
    {
@@ -284,3 +304,8 @@ LoopBack application! We did the following:
 - add Authenticate Action in the sequence
 - create the UserController for login and signup functions
 - protect the APIs by adding the `@authenticate` decorator
+
+See the
+[todo-jwt example](https://github.com/strongloop/loopback-next/blob/master/examples/todo-jwt)
+for the working application. You can also run `lb4 example todo-jwt` to download
+the example.
